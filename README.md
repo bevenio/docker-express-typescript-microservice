@@ -6,7 +6,7 @@ Small example of a micro service written in nodeJS utilising typescript and expr
 
 | Layer name| Responsible file| Utilises |
 |----------|-----------------|---------|
-| Transport layer | controllers/*.ts | DTOs |
+| Transport layer | controllers/*.ts | DTOs (DTOs/*.ts)|
 | Service layer | service/*.ts | Converters (converters/*.ts)|
 | Data layer | repositories/*.ts | Models (models/*.ts)|
 
