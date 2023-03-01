@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
-import { Inject } from "typedi";
+import { Inject, Service } from "typedi";
 import { ProductService } from "../services/product";
 import { Controller } from "../utils/decorators/controller";
 import { Get } from "../utils/decorators/routes";
 
 @Controller('/product')
-class ProductController {
+@Service()
+export class ProductController {
 
     @Inject()
     productService: ProductService
