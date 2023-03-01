@@ -1,22 +1,20 @@
-import { Service } from "typedi";
-import ProductDTO from "../DTOs/product";
-import Product from "../models/product";
+import { Service } from 'typedi'
+import ProductDTO from '../DTOs/product'
+import Product from '../models/product'
 
 @Service()
 export class ProductConverter {
-    fromDTO(productDTO: ProductDTO): Product {
-        return new Product()
-            .setId(productDTO.getId())
-            .setAmount(productDTO.getAmount())
-            .setName(productDTO.getName())
-            .setPrice(productDTO.getPrice())
-    }
+  static fromDTO(productDTO: ProductDTO): Product {
+    return new Product().setId(productDTO.id).setAmount(productDTO.amount).setName(productDTO.name).setPrice(productDTO.price)
+  }
 
-    toDTO(product: Product): ProductDTO {
-        return new ProductDTO()
-            .setId(product.getId())
-            .setAmount(product.getAmount())
-            .setName(product.getName())
-            .setPrice(product.getPrice())
+  static toDTO(product: Product): ProductDTO {
+    const productDTO: ProductDTO = {
+      id: product.getId(),
+      amount: product.getAmount(),
+      name: product.getName(),
+      price: product.getPrice(),
     }
+    return productDTO
+  }
 }

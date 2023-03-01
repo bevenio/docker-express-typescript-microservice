@@ -1,0 +1,10 @@
+{
+  "editor.wordWrap": "on",
+  "npm-scripts.showStartNotification": false,
+  "editor.tabSize": 2,
+  "path-autocomplete.pathMappings": {
+    "@": "${workspace}/src"
+  },
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
