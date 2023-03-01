@@ -5,6 +5,10 @@ export default class Product {
     private name: string
     private totalSold: number
 
+    constructor(data: Partial<Product> = {}){
+        Object.assign(this, data)
+    }
+
     setId(id: number) {
         this.id = id
         return this

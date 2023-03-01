@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class ProductDTO {
+    constructor(data = {}) {
+        Object.assign(this, data);
+    }
     setId(id) {
         this.id = id;
         return this;

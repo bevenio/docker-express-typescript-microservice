@@ -1,8 +1,13 @@
 export default class ProductDTO {
+
     private id: number
     private price: number
     private amount: number
     private name: string
+
+    constructor(data: Partial<ProductDTO> = {}){
+        Object.assign(this, data)
+    }
 
     setId(id: number) {
         this.id = id
