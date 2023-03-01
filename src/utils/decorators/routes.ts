@@ -1,8 +1,4 @@
-export interface RouteDefinition {
-    path: string
-    method: 'get' | 'post' | 'delete' | 'put'
-    methodName: string
-}
+import { RouteDefinition } from "../definitions/route"
 
 export function Get(path: string) {
     return (target: any, propertyKey: string): void => {
@@ -13,7 +9,8 @@ export function Get(path: string) {
         routes.push({
             method: 'get',
             path,
-            methodName: propertyKey
+            methodName: propertyKey,
+            validators: []
         })
         Reflect.defineMetadata('routes', routes, target.constructor)
     }
@@ -28,7 +25,8 @@ export function Post(path: string) {
         routes.push({
             method: 'post',
             path,
-            methodName: propertyKey
+            methodName: propertyKey,
+            validators: []
         })
         Reflect.defineMetadata('routes', routes, target.constructor)
     }
@@ -43,7 +41,8 @@ export function Delete(path: string) {
         routes.push({
             method: 'delete',
             path,
-            methodName: propertyKey
+            methodName: propertyKey,
+            validators: []
         })
         Reflect.defineMetadata('routes', routes, target.constructor)
     }
@@ -58,7 +57,8 @@ export function Put(path: string) {
         routes.push({
             method: 'put',
             path,
-            methodName: propertyKey
+            methodName: propertyKey,
+            validators: []
         })
         Reflect.defineMetadata('routes', routes, target.constructor)
     }
