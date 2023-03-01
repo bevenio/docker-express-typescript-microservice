@@ -3,10 +3,10 @@ import { body } from 'express-validator'
 import { Inject, Service } from 'typedi'
 import { ProductService } from '../services/product'
 import { Controller } from '../utils/decorators/controller'
-import { Get, Post } from '../utils/decorators/routes'
+import { Get } from '../utils/decorators/routes'
 import { Val } from '../utils/decorators/validators'
 
-@Controller('/product')
+@Controller('/products')
 @Service()
 export class ProductController {
   @Inject()

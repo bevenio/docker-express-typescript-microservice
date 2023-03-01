@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response, Errback } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import * as OpenApiValidator from 'express-openapi-validator'
 
 export const openApiMiddleware = OpenApiValidator.middleware({
-  apiSpec: '@/../openapi/v1/api.yaml',
+  apiSpec: '@/../openapi/api.yaml',
   validateRequests: true,
   validateResponses: true,
 })

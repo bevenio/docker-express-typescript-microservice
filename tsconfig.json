@@ -6,7 +6,6 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
     "module": "commonjs",
-    "rootDir": "src",
     "resolveJsonModule": true,
     "allowJs": true,
     "outDir": "build",
@@ -15,8 +14,10 @@
     "strict": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
+    "rootDir": "src",
     "paths": {
       "@/*": ["./src/*"]
     }
-  }
+  },
+  "include": ["src", "openapi"]
 }
