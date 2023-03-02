@@ -1,6 +1,3 @@
-export default interface ProductDTO {
-  id: number
-  price: number
-  amount: number
-  name: string
-}
+import { components } from '../schemas/openapi'
+
+export type ProductDTO = components['schemas']['Product']

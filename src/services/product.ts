@@ -1,3 +1,4 @@
+import { Product } from '../models/product'
 import { Inject, Service } from 'typedi'
 import { ProductRepository } from '../repositories/product'
 
@@ -7,7 +8,7 @@ export class ProductService {
   productRepository: ProductRepository
 
   async get() {
-    const products = await this.productRepository.get()
+    const products: Product[] = await this.productRepository.get()
     return products
   }
 }

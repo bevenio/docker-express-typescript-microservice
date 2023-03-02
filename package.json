@@ -4,7 +4,7 @@
   "description": "Small example of a microservice written in nodeJS utilising typescript and express",
   "main": "src/index.ts",
   "scripts": {
-    "generate:openapi": "npx swagger-cli validate openapi/api.yaml && npx openapi-typescript openapi/api.yaml --output src/schemas/openapi.ts",
+    "generate:openapi": "npx swagger-cli validate openapi/v1/api.yaml && npx openapi-typescript openapi/v1/api.yaml --output src/schemas/openapi.ts",
     "serve:dev": "concurrently \"npx tsc --watch\" \"nodemon -q build/index.js\"",
     "build:dev": "npm run generate:schemas && npx tsc"
   },

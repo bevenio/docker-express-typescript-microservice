@@ -15,15 +15,21 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: number
-                  price:
-                    type: number
-                  amount:
-                    type: number
-                  name:
-                    type: string
+                $ref: '#/components/schemas/Product'
+
         default:
           description: Unexpected error
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: number
+        price:
+          type: number
+        amount:
+          type: number
+        name:
+          type: string

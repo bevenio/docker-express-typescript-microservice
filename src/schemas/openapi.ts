@@ -3,18 +3,49 @@
  * Do not make direct changes to the file.
  */
 
-
 export interface paths {
-  "/products": {
-  };
+  '/products': {
+    /**
+     * Returns a list of products
+     * @description List of products
+     */
+    get: {
+      /**
+       * Returns a list of products
+       * @description List of products
+       */
+      responses: {
+        /** @description A JSON array of products */
+        200: {
+          content: {
+            'application/json': components['schemas']['Product']
+          }
+        }
+        /** @description Unexpected error */
+        default: never
+      }
+    }
+  }
 }
 
-export type webhooks = Record<string, never>;
+export type webhooks = Record<string, never>
 
-export type components = Record<string, never>;
-
-export interface external {
-
+export interface components {
+  schemas: {
+    Product: {
+      id?: number
+      price?: number
+      amount?: number
+      name?: string
+    }
+  }
+  responses: never
+  parameters: never
+  requestBodies: never
+  headers: never
+  pathItems: never
 }
 
-export type operations = Record<string, never>;
+export type external = Record<string, never>
+
+export type operations = Record<string, never>
