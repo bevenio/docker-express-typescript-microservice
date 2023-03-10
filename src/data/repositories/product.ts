@@ -1,5 +1,6 @@
-import { Product } from '../models/product'
 import { Service } from 'typedi'
+
+import { DataProduct } from '@/data/models/product'
 
 const db = [
   {
@@ -21,7 +22,7 @@ export class ProductRepository {
   db = db
 
   get() {
-    const products: Product[] = this.db.map((entity) => new Product(entity))
+    const products: DataProduct[] = this.db.map((entity) => new DataProduct(entity))
     return products
   }
 }

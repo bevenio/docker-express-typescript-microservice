@@ -1,10 +1,7 @@
-import { Product } from '../models/product'
-import { Inject, Service } from 'typedi'
-import { ProductRepository } from '../repositories/product'
+import { ProductRepository } from '@/data/repositories/product'
+import { Product } from '@/domain/models/product'
 
-@Service()
 export class ProductService {
-  @Inject()
   productRepository: ProductRepository
 
   async get() {

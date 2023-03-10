@@ -1,12 +1,9 @@
 import 'reflect-metadata'
-import dotenv from 'dotenv'
-import { createExpress } from './express'
 
-/* Environment variables */
-dotenv.config()
+import { Server } from '@/server'
 
 /* Express */
-createExpress(process.env.PORT)
+new Server().listen()
 
-/* Controllers */
-import './controllers/product'
+/* Routes */
+import '@/presentation/controllers/product'

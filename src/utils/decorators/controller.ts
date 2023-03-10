@@ -1,21 +1,47 @@
-import { Router } from 'express'
-import Container from 'typedi'
-import { RouteDefinition } from '../definitions/route'
-import { validateMiddleware } from '../middlewares/validation'
+import { ServerInstance } from '@/server'
+import { Route } from '@/utils/schemas/route.interface'
 
-export const router = Router()
+interface ControllerInstance {
+  class: any
+  instance: any
+}
 
-export const Controller = (prefix: string): ClassDecorator => {
+const controllerInstances: ControllerInstance[] = []
+
+const getControllerInstance = <T>(target: any): T => {
+  let targetController = controllerInstances.find((controller) => controller.class === target)
+
+  if (!targetController) {
+    targetController = {
+      class: target,
+      instance: new target(),
+    }
+    controllerInstances.push(targetController)
+  }
+
+  return targetController?.instance
+}
+
+export const Controller = (prefix: string, version?: string): ClassDecorator => {
   return (target: any) => {
     Reflect.defineMetadata('prefix', prefix, target)
     if (!Reflect.hasMetadata('routes', target)) {
       Reflect.defineMetadata('routes', [], target)
     }
-    const routes: Array<RouteDefinition> = Reflect.getMetadata('routes', target)
-    const instance: any = Container.get(target)
-    routes.forEach((route: RouteDefinition) => {
-      console.debug('Registered route ', { path: `${prefix}${route.path}`, method: route.methodName, controller: target.name })
-      router[route.method](`${prefix}${route.path}`, validateMiddleware(route.validators), instance[route.methodName].bind(instance))
+    const routes: Array<Route> = Reflect.getMetadata('routes', target)
+    const server = ServerInstance
+    const router = server.getRouter(version)
+    const controller = getControllerInstance<typeof target>(target)
+
+    routes.forEach((route: Route) => {
+      if (!router)
+        return console.debug(`Could not register route`, {
+          path: `${prefix}${route.path}`,
+          method: route.methodName,
+          controller: target.name,
+        })
+      router.instance[route.method](`${prefix}${route.path}`, controller[route.methodName])
+      console.debug(`Registered route [${router.version}]`, { path: `${prefix}${route.path}`, method: route.methodName, controller: target.name })
     })
   }
 }

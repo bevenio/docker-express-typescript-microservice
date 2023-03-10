@@ -1,23 +1,36 @@
 {
-  "compilerOptions": {
-    "target": "es2016",
-    "lib": ["es6"],
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "strictPropertyInitialization": false,
-    "module": "commonjs",
-    "resolveJsonModule": true,
-    "allowJs": true,
-    "outDir": "build",
-    "esModuleInterop": true,
+	"compilerOptions": {
+		"target": "ES2018",
+    "lib": ["ES6"],
+		"module": "CommonJS",
+		"declaration": true,
+		"sourceMap": true,
+		"composite": false,
+		"removeComments": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noImplicitAny": true,
+
+		"strict": true,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"strictBindCallApply": true,
+		"strictPropertyInitialization": false,
+		"noImplicitThis": true,
+
+		"moduleResolution": "Node",
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
     "skipLibCheck": true,
-    "rootDir": "src",
+
+    "outDir": "./build",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@openapi/*": ["./openapi/*"]
     }
-  },
-  "include": ["src", "openapi"]
+	},
+  "include": ["src/**/*", "openapi"],
+  "exclude": ["node_modules", "src/utils/schemas/openapi.tsterface.tsterface.ts"]
 }
