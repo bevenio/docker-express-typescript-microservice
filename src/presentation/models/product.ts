@@ -1,3 +1,3 @@
-import { components } from '@/utils/schemas/openapi.interface'
+import { components } from '@/common/schemas/openapi.interface'
 
 export type ProductDTO = components['schemas']['Product']

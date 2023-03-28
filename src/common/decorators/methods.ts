@@ -1,4 +1,4 @@
-import { Route, RouteMethod } from '@/utils/schemas/route.interface'
+import { Route, RouteMethod } from '@/common/schemas/route.interface'
 
 const createRouteHandler = (path: string, method: RouteMethod) => {
   return (target: any, propertyKey: string): void => {

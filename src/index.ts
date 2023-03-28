@@ -1,9 +1,13 @@
 import 'reflect-metadata'
 
-import { Server } from '@/server'
+import { DatabaseConnector } from '@/common/database/connector'
+import { ServerInstance } from '@/server'
 
 /* Express */
-new Server().listen()
+ServerInstance.listen()
+
+/* Databases */
+DatabaseConnector.connect()
 
 /* Routes */
-import '@/presentation/controllers/product'
+// import '@/presentation/controllers/product/product'

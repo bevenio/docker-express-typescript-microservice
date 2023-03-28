@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  development-service-microservice:
+    image: node:18
+    volumes:
+      - nodemodules:/usr/src/service/node_modules:consistent
+      - ./../:/usr/src/service:consistent
+    environment:
+      - NODE_ENV=development
+    working_dir: /usr/src/service
+    command: npx nodemon
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    links:
+      - mongo
+  mongo:
+    image: mongo
+    volumes:
+      - mongodb:/data/db
+    restart: always
+    command: mongod --quiet --logpath /dev/null 
+    ports:
+      - ${DB_MONGO_PORT}:27017 
+
+volumes:
+  nodemodules:
+    external: true
+  mongodb:
+    external: false

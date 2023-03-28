@@ -1,0 +1,43 @@
+version: '2'
+
+services:
+  base:
+    image: node:18
+    volumes:
+      - nodemodules_ms:/usr/src/service/node_modules
+      - ./../:/usr/src/service/
+    working_dir: /usr/src/service/
+  # Installing node_modules inside of the docker environment
+  install:
+    extends:
+      service: base
+    command: npm i
+  # Run in watch mode
+  watch:
+    extends:
+      service: base
+    command: npx nodemon
+  # Build to dist
+  build:
+    extends:
+      service: base
+    command: npx tsc && npx tsc-alias
+  # Run the linter
+  lint:
+    extends:
+      service: base
+    command: npx eslint . --ext .ts
+  # Run tests with optional pattern
+  test:
+    extends:
+      service: base
+    command: npx mocha --config .mocharc.json
+  # Execute command that has been passed to $ARGS
+  execute_command:
+    extends:
+      service: base
+    command: bash -c "$ARGS"
+
+volumes:
+  nodemodules_ms:
+    external: true

@@ -4,9 +4,8 @@ import * as express from 'express'
 import { Server as ServerHTTP } from 'http'
 import morgan from 'morgan'
 
-import { openapiErrorMiddleware, openapiValidationMiddleware } from '@/utils/middlewares/openapi'
-
-import { EnvironmentInstance } from './utils/configuration/environment'
+import { Environment } from '@/common/configuration/environment'
+import { openapiErrorMiddleware, openapiValidationMiddleware } from '@/common/middlewares/openapi'
 
 type ServerRouter = { version: string; instance: express.Router }
 type ServerCallback = undefined | (() => void)
@@ -14,13 +13,13 @@ type ServerCallback = undefined | (() => void)
 export class Server {
   private port: number
   private app = express.default()
-  private environment = EnvironmentInstance
+  private environment = Environment
 
   public routers: ServerRouter[]
   public server: ServerHTTP
 
   constructor(port?: number) {
-    this.port = port || this.environment.PORT
+    this.port = port || this.environment.SERVER_PORT
     this.registerRouters()
     this.registerMiddlewares()
   }
@@ -36,7 +35,7 @@ export class Server {
   public getRouter(version?: string) {
     return (
       this.routers.find((router) => router.version === version) ||
-      this.routers.find((router) => router.version === this.environment.DEFAULT_API_VERSION)
+      this.routers.find((router) => router.version === this.environment.API_DEFAULT_VERSION)
     )
   }
 

@@ -1,15 +1,14 @@
-import { Request, Response } from 'express'
-
+import { Controller } from '@/common/decorators/controller'
+import { Get } from '@/common/decorators/methods'
+import { RequestType, ResponseType } from '@/common/schemas/transactions.interface'
 import { ProductService } from '@/domain/services/product'
-import { Controller } from '@/utils/decorators/controller'
-import { Get } from '@/utils/decorators/methods'
 
 @Controller('/products')
 export class ProductController {
   productService: ProductService
 
   @Get('/')
-  async get(req: Request, res: Response) {
+  async get(req: RequestType<'Product'>, res: ResponseType<'Product'>) {
     try {
       const result = await this.productService.get()
       res.send({ data: result })
