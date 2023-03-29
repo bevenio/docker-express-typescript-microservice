@@ -1,7 +1,7 @@
 import { Service } from 'typedi'
 
+import { Product } from '@/domain/entities/Product'
 import { ProductDTO } from '@/presentation/models/product'
-import { Product } from '@/domain/models/product'
 
 @Service()
 export class ProductConverter {

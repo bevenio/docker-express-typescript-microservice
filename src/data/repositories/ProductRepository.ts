@@ -1,7 +1,7 @@
-import { ProductInterface, ProductModel } from '@/data/models/ProductModel'
+import { IProductModel, ProductModel } from '@/data/models/ProductModel'
 import { BaseRepository } from '@/data/repositories/BaseRepository'
 
-export const ProductRepository: BaseRepository<ProductInterface> = {
+export const ProductRepository: BaseRepository<IProductModel> = {
   findAll: async () => {
     return await ProductModel.find().lean()
   },
@@ -33,6 +33,6 @@ export const ProductRepository: BaseRepository<ProductInterface> = {
   },
 
   deleteMany: (ids) => {
-    ProductModel.deleteMany({ _id: ids })
+    ProductModel.deleteMany({ _id: { $in: ids } })
   },
 }

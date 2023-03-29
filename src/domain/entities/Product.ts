@@ -1,15 +1,16 @@
 export class Product {
-  id: number
+  id: string
   price: number
   amount: number
   name: string
+  gener: number
   totalSold: number
 
   constructor(data: Partial<Product> = {}) {
     Object.assign(this, data)
   }
 
-  setId(id: number) {
+  setId(id: string) {
     this.id = id
     return this
   }

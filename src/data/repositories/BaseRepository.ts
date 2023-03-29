@@ -1,4 +1,4 @@
-import { Require_id } from 'mongoose'
+import { WithId } from '@/common/schemas/withid.interface'
 
 /**
  * The goal of this base interface for repositories is to make sure that we return interfaces/models of the mongoose operations
@@ -6,13 +6,13 @@ import { Require_id } from 'mongoose'
  * manipulate the databse directly. This case would introduce more locations for vulnerabilities.
  **/
 
-export interface BaseRepository<ModelInterface> {
-  findAll: () => Promise<Require_id<ModelInterface>[] | null>
-  findById: (id: string) => Promise<Require_id<ModelInterface> | null>
-  create: (item: ModelInterface) => Require_id<ModelInterface>
-  createMany: (items: ModelInterface[]) => Require_id<ModelInterface>[]
-  save: (item: Require_id<ModelInterface>) => void
-  saveMany: (items: Require_id<ModelInterface>[]) => void
+export interface BaseRepository<Model> {
+  findAll: () => Promise<WithId<Model>[] | null>
+  findById: (id: string) => Promise<WithId<Model> | null>
+  create: (item: Model) => WithId<Model>
+  createMany: (items: Model[]) => WithId<Model>[]
+  save: (item: WithId<Model>) => void
+  saveMany: (items: WithId<Model>[]) => void
   delete: (id: string) => void
   deleteMany: (ids: string[]) => void
 }

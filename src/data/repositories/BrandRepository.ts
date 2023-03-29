@@ -1,7 +1,7 @@
-import { BrandInterface, BrandModel } from '@/data/models/BrandModel'
+import { BrandModel, IBrandModel } from '@/data/models/BrandModel'
 import { BaseRepository } from '@/data/repositories/BaseRepository'
 
-export const BrandRepository: BaseRepository<BrandInterface> = {
+export const BrandRepository: BaseRepository<IBrandModel> = {
   findAll: async () => {
     return await BrandModel.find().lean()
   },
@@ -29,10 +29,10 @@ export const BrandRepository: BaseRepository<BrandInterface> = {
   },
 
   delete: (id) => {
-    BrandModel.deleteOne({ _id: id })
+    BrandModel.deleteOne({ id: id })
   },
 
   deleteMany: (ids) => {
-    BrandModel.deleteMany({ _id: ids })
+    BrandModel.deleteMany({ id: { $in: ids } })
   },
 }
