@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"target": "ES2018",
+		"target": "ES2022",
     "lib": ["ES6"],
 		"module": "CommonJS",
 		"declaration": true,
@@ -32,5 +32,5 @@
     }
 	},
   "include": ["src/**/*", "openapi"],
-  "exclude": ["node_modules", "src/utils/schemas/openapi.tsterface.tsterface.ts"]
+  "exclude": ["node_modules"]
 }
