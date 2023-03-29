@@ -4,7 +4,6 @@ import { BaseSchemaOptions } from '@/data/models/BaseSchemaOptions'
 import { ProductInterface, ProductModel } from '@/data/models/ProductModel'
 
 export interface BrandInterface {
-  _id?: Schema.Types.ObjectId
   name: string
   products: Require_id<ProductInterface>[]
 }

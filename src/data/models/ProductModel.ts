@@ -3,7 +3,6 @@ import { model, Schema } from 'mongoose'
 import { BaseSchemaOptions } from '@/data/models/BaseSchemaOptions'
 
 export interface ProductInterface {
-  _id?: Schema.Types.ObjectId
   name: string
   price?: number
   amount?: number

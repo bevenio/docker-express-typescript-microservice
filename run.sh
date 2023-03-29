@@ -8,7 +8,6 @@ options=("setup" "watch" "lint" "test" "run command" "build" "quit")
 
 while true
 do
-    echo "Choose an action to perform in the microservice repository: "
     select opt in "${options[@]}"
     do
         case $opt in
