@@ -10,6 +10,10 @@ export class BrandRepository extends BaseMongoRepository<BrandModel> {
     return this.findOne({ id })
   }
 
+  async getByName(name: string): Promise<BrandModel[]> {
+    return this.findMany({ name })
+  }
+
   async getAll() {
     return this.findAll()
   }

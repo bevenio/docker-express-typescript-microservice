@@ -5,11 +5,13 @@ import {
   Document,
   Filter,
   FindOptions,
+  InsertManyResult,
   InsertOneOptions,
   ObjectId,
   OptionalUnlessRequiredId,
   UpdateFilter,
   UpdateOptions,
+  UpdateResult,
   WithId,
 } from 'mongodb'
 
@@ -34,12 +36,9 @@ export abstract class BaseMongoRepository<T extends Document> {
     return { ...rest, _id } as OptionalUnlessRequiredId<T>
   }
 
-  private modifyFilter = (filter: Filter<T>): Filter<T> => {
-    return {
-      _id: new ObjectId(filter.id) || undefined,
-      id: undefined,
-      ...filter,
-    }
+  private modifyFilter = (filter: Filter<T>): Filter<any> => {
+    const { id, ...rest } = filter
+    return id ? { ...rest, _id: new ObjectId(filter.id) } : { ...rest }
   }
 
   protected async findOne(filter: Filter<T>, options?: FindOptions<T>): Promise<T | null> {
@@ -48,16 +47,16 @@ export abstract class BaseMongoRepository<T extends Document> {
     return result ? this.convertToModel(result) : null
   }
 
-  protected async findMany(filter: Filter<T>, options?: FindOptions<T>): Promise<T[] | null> {
-    if (!this.collection) return null
+  protected async findMany(filter: Filter<T>, options?: FindOptions<T>): Promise<T[]> {
+    if (!this.collection) return []
     const result = await this.collection.find(this.modifyFilter(filter), options).toArray()
-    return result ? result.map<T>(this.convertToModel) : null
+    return result ? result.map<T>(this.convertToModel) : []
   }
 
-  protected async findAll(): Promise<T[] | null> {
-    if (!this.collection) return null
+  protected async findAll(): Promise<T[]> {
+    if (!this.collection) return []
     const result = await this.collection.find().toArray()
-    return result ? result.map<T>(this.convertToModel) : null
+    return result ? result.map<T>(this.convertToModel) : []
   }
 
   protected async insertOne(model: T, options?: InsertOneOptions): Promise<T | null> {
@@ -67,23 +66,23 @@ export abstract class BaseMongoRepository<T extends Document> {
     return result ? this.convertToModel(result) : null
   }
 
-  protected async insertMany(models: T[], options?: BulkWriteOptions): Promise<T | null> {
+  protected async insertMany(models: T[], options?: BulkWriteOptions): Promise<InsertManyResult<T> | null> {
     if (!this.collection) return null
     const result = await this.collection.insertMany(models.map(this.convertToDocument), options)
-    return result ? this.convertToModel(result) : null
+    return result
   }
 
-  protected async updateOne(model: T, options?: UpdateOptions): Promise<T | null> {
+  protected async updateOne(model: T, options?: UpdateOptions): Promise<UpdateResult | null> {
     if (!this.collection) return null
     const modifiedOptions = { ...options, upsert: true }
     const result = await this.collection.updateOne(this.convertToDocument(model), modifiedOptions)
-    return result ? this.convertToModel(result) : null
+    return result
   }
 
-  protected async updateMany(filter: Filter<T>, update: UpdateFilter<T>, options?: UpdateOptions): Promise<T | null> {
+  protected async updateMany(filter: Filter<T>, update: UpdateFilter<T>, options?: UpdateOptions): Promise<UpdateResult | null> {
     if (!this.collection) return null
     const result = await this.collection.updateMany(filter, update, options)
-    return result ? this.convertToModel(result) : null
+    return result
   }
 
   protected async delete(filter: Filter<T>, options?: DeleteOptions): Promise<boolean> {
