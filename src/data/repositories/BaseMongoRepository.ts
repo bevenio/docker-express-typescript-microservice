@@ -8,6 +8,8 @@ import {
   InsertOneOptions,
   ObjectId,
   OptionalUnlessRequiredId,
+  UpdateFilter,
+  UpdateOptions,
   WithId,
 } from 'mongodb'
 
@@ -68,6 +70,19 @@ export abstract class BaseMongoRepository<T extends Document> {
   protected async insertMany(models: T[], options?: BulkWriteOptions): Promise<T | null> {
     if (!this.collection) return null
     const result = await this.collection.insertMany(models.map(this.convertToDocument), options)
+    return result ? this.convertToModel(result) : null
+  }
+
+  protected async updateOne(model: T, options?: UpdateOptions): Promise<T | null> {
+    if (!this.collection) return null
+    const modifiedOptions = { ...options, upsert: true }
+    const result = await this.collection.updateOne(this.convertToDocument(model), modifiedOptions)
+    return result ? this.convertToModel(result) : null
+  }
+
+  protected async updateMany(filter: Filter<T>, update: UpdateFilter<T>, options?: UpdateOptions): Promise<T | null> {
+    if (!this.collection) return null
+    const result = await this.collection.updateMany(filter, update, options)
     return result ? this.convertToModel(result) : null
   }
 
