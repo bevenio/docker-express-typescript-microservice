@@ -4,6 +4,9 @@
 /* Test */
 import { BrandRepository } from './data/repositories/BrandRepository'
 const repo = BrandRepository.instance()
-repo.create({ name: 'Apple' })
-repo.getByName('Apple').then(console.log)
+repo.getAll().then((brands) => {
+  console.log(brands)
+  const updatedBrand = { ...brands[0], name: 'Snapple' }
+  repo.update(updatedBrand)
+})
 repo.count().then(console.log)

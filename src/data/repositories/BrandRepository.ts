@@ -21,4 +21,8 @@ export class BrandRepository extends BaseMongoRepository<BrandModel> {
   async create(model: BrandModel) {
     return this.insertOne(model)
   }
+
+  async update(model: BrandModel) {
+    return this.updateOne({ id: model.id }, model)
+  }
 }

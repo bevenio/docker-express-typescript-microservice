@@ -8,7 +8,6 @@ import {
   InsertOneOptions,
   ObjectId,
   OptionalUnlessRequiredId,
-  UpdateFilter,
   UpdateOptions,
   UpdateResult,
   WithId,
@@ -89,17 +88,17 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
     return result
   }
 
-  protected async updateOne(model: T, options?: UpdateOptions): Promise<UpdateResult | null> {
+  protected async updateOne(filter: Filter<T>, model: T, options?: UpdateOptions): Promise<UpdateResult | null> {
     if (!this.collection) return null
     const modifiedOptions = { ...options, upsert: true }
     const modifiedModel = this.updateUpdatedAt(model)
-    const result = await this.collection.updateOne(this.convertToDocument(modifiedModel), modifiedOptions)
+    const result = await this.collection.updateOne(this.modifyFilter(filter), { $set: { ...modifiedModel } }, modifiedOptions)
     return result
   }
 
-  protected async updateMany(filter: Filter<T>, update: UpdateFilter<T>, options?: UpdateOptions): Promise<UpdateResult | null> {
+  protected async updateMany(filter: Filter<T>, model: T, options?: UpdateOptions): Promise<UpdateResult | null> {
     if (!this.collection) return null
-    const modifiedUpdate: UpdateFilter<T> = { ...update, updatedAt: new Date() }
+    const modifiedUpdate = this.updateUpdatedAt(model)
     const result = await this.collection.updateMany(filter, modifiedUpdate, options)
     return result
   }
