@@ -8,6 +8,7 @@ Small example of a microservice written in nodeJS utilising typescript and expre
 - Completely typed
 - Decorators
 - DDD approach
+- MongoDB
 
 ## Layers
 
