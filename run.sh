@@ -4,7 +4,7 @@ RUN_DOCKER_COMMAND="docker compose -f ./.docker/docker-compose.commands.yml run 
 RUN_DOCKER_DEVELOPMENT="docker compose -f ./.docker/docker-compose.development.yml -p development-container-microservice --env-file .env up --remove-orphans"
 
 PS3="Choose an action to perform in this repository:"
-options=("setup" "watch" "generate" "lint" "test" "run command" "build" "quit")
+options=("setup" "watch" "lint" "test" "run command" "build" "quit")
 
 while true
 do
@@ -20,9 +20,6 @@ do
                 ;;
             "setup")
                 docker volume create nodemodules_ms && ARGS="" $RUN_DOCKER_COMMAND install && npm ci
-                ;;
-            "generate")
-                ARGS="" $RUN_DOCKER_COMMAND generate_mongo_schemas
                 ;;
             "run command")
                 read -p "Enter command: " command
