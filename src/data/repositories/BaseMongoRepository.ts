@@ -17,11 +17,7 @@ import { DatabaseConnector } from '@/common/database/connector'
 import { BaseModel } from '@/data/models/BaseModel'
 
 export abstract class BaseMongoRepository<T extends BaseModel> {
-  protected readonly collection: Collection<T> | null
-
-  constructor(collectionName: string) {
-    this.collection = DatabaseConnector.getConnection('mongo')?.collection<T>(collectionName) || null
-  }
+  private readonly collection: Collection<T> | null
 
   private convertToModel = (document: WithId<any>): T => {
     const { _id, ...rest } = document
@@ -122,5 +118,13 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
 
   static instance<T = BaseMongoRepository<any>>(this: { new (): T }) {
     return new this()
+  }
+}
+
+export const MongoRepository = (collectionName: string) => {
+  return <T extends { new (...args: any[]): any }>(target: T) => {
+    return class extends target {
+      collection = DatabaseConnector.getConnection('mongo')?.collection<T>(collectionName) || null
+    }
   }
 }

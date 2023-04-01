@@ -1,11 +1,8 @@
 import { BrandModel } from '@/data/models/BrandModel'
-import { BaseMongoRepository } from '@/data/repositories/BaseMongoRepository'
+import { BaseMongoRepository, MongoRepository } from '@/data/repositories/BaseMongoRepository'
 
+@MongoRepository('brands')
 export class BrandRepository extends BaseMongoRepository<BrandModel> {
-  constructor() {
-    super('brands')
-  }
-
   async getById(id: string) {
     return this.findOne({ id })
   }
