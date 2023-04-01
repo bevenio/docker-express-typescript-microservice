@@ -1,26 +1,11 @@
-import { model, Require_id, Schema } from 'mongoose'
+import { ObjectId } from 'mongodb'
 
-import { WithId } from '@/common/schemas/withid.interface'
-import { BaseSchemaOptions } from '@/data/models/BaseSchemaOptions'
-import { BrandModel, IBrandModel } from '@/data/models/BrandModel'
+import { BaseModel } from '@/data/models/BaseModel'
 
-export interface IProductModel {
+export interface ProductModel extends BaseModel {
   name: string
   price?: number
   amount?: number
   amountSold?: number
-  brand?: Require_id<IBrandModel>
+  brand?: ObjectId
 }
-
-export const ProductSchema = new Schema<IProductModel>(
-  {
-    name: { type: String, required: true },
-    price: Number,
-    amount: Number,
-    amountSold: Number,
-    brand: { type: Schema.Types.ObjectId, ref: BrandModel.modelName, required: false },
-  },
-  BaseSchemaOptions
-)
-
-export const ProductModel = model<WithId<IProductModel>>('Product', ProductSchema)

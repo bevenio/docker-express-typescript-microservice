@@ -28,7 +28,11 @@ class EnvironmentService {
   }
 
   get DB_MONGO_PORT(): number {
-    return Number(process.env.DB_MONGO_PORT) || 27017
+    return Number(process.env.DB_MONGO_PORT)
+  }
+
+  get DB_MONGO_NAME(): string {
+    return `${process.env.DB_MONGO_NAME}`
   }
 }
 

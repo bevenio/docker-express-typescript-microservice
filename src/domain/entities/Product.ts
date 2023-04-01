@@ -1,37 +1,15 @@
-export class Product {
-  id: string
-  price: number
-  amount: number
+import { BaseEntity } from '@/domain/entities/BaseEntity'
+import { Brand } from '@/domain/entities/Brand'
+
+export class Product extends BaseEntity {
   name: string
-  gener: number
-  totalSold: number
+  price?: number
+  amount?: number
+  amountSold?: number
+  brand?: Brand
 
   constructor(data: Partial<Product> = {}) {
+    super()
     Object.assign(this, data)
-  }
-
-  setId(id: string) {
-    this.id = id
-    return this
-  }
-
-  setPrice(price: number) {
-    this.price = price
-    return this
-  }
-
-  setAmount(amount: number) {
-    this.amount = amount
-    return this
-  }
-
-  setName(name: string) {
-    this.name = name
-    return this
-  }
-
-  setTotalSold(totalSold: number) {
-    this.totalSold = totalSold
-    return this
   }
 }

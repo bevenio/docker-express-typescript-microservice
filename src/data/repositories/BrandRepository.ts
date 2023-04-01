@@ -1,38 +1,20 @@
-import { BrandModel, IBrandModel } from '@/data/models/BrandModel'
-import { BaseRepository } from '@/data/repositories/BaseRepository'
+import { BrandModel } from '@/data/models/BrandModel'
+import { BaseMongoRepository } from '@/data/repositories/BaseMongoRepository'
 
-export const BrandRepository: BaseRepository<IBrandModel> = {
-  findAll: async () => {
-    return await BrandModel.find().lean()
-  },
+export class BrandRepository extends BaseMongoRepository<BrandModel> {
+  constructor() {
+    super('brands')
+  }
 
-  findById: async (id) => {
-    return await BrandModel.findById(id).lean()
-  },
+  async getById(id: string) {
+    return this.findOne({ id })
+  }
 
-  create: (item) => {
-    return new BrandModel(item)
-  },
+  async getAll() {
+    return this.findAll()
+  }
 
-  createMany: (items) => {
-    return items.map((item) => {
-      return new BrandModel(item)
-    })
-  },
-
-  save: (item) => {
-    new BrandModel(item).save()
-  },
-
-  saveMany: (items) => {
-    BrandModel.bulkSave(items.map((item) => new BrandModel(item)))
-  },
-
-  delete: (id) => {
-    BrandModel.deleteOne({ id: id })
-  },
-
-  deleteMany: (ids) => {
-    BrandModel.deleteMany({ id: { $in: ids } })
-  },
+  async create(model: BrandModel) {
+    return this.insertOne(model)
+  }
 }

@@ -1,5 +1,5 @@
-import { ServerInstance } from '@/server'
 import { Route } from '@/common/schemas/route.interface'
+import { ServerInstance } from '@/server'
 
 interface ControllerInstance {
   class: any

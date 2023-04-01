@@ -7,6 +7,7 @@ Small example of a microservice written in nodeJS utilising typescript and expre
 - OpenAPI validation
 - Completely typed
 - Decorators
+- DDD approach
 
 ## Layers
 
@@ -20,5 +21,5 @@ Small example of a microservice written in nodeJS utilising typescript and expre
 
 To be added:
 
-- Docker Wrapper / Image building
-- Logger
+- MongoDB schema validation by using TS interfaces
+- OpenAPI generation from code

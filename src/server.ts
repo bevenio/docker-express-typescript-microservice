@@ -4,7 +4,7 @@ import * as express from 'express'
 import { Server as ServerHTTP } from 'http'
 import morgan from 'morgan'
 
-import { Environment } from '@/common/configuration/environment'
+import { Environment } from '@/common/environment/environment'
 import { openapiErrorMiddleware, openapiValidationMiddleware } from '@/common/middlewares/openapi'
 
 type ServerRouter = { version: string; instance: express.Router }

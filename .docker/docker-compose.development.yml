@@ -4,7 +4,7 @@ services:
   development-service-microservice:
     image: node:18
     volumes:
-      - nodemodules:/usr/src/service/node_modules:consistent
+      - nodemodules_ms:/usr/src/service/node_modules:consistent
       - ./../:/usr/src/service:consistent
     environment:
       - NODE_ENV=development
@@ -24,7 +24,7 @@ services:
       - ${DB_MONGO_PORT}:27017 
 
 volumes:
-  nodemodules:
+  nodemodules_ms:
     external: true
   mongodb:
     external: false

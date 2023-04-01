@@ -1,38 +1,16 @@
-import { IProductModel, ProductModel } from '@/data/models/ProductModel'
-import { BaseRepository } from '@/data/repositories/BaseRepository'
+import { ProductModel } from '@/data/models/ProductModel'
+import { BaseMongoRepository } from '@/data/repositories/BaseMongoRepository'
 
-export const ProductRepository: BaseRepository<IProductModel> = {
-  findAll: async () => {
-    return await ProductModel.find().lean()
-  },
+export class ProductRepository extends BaseMongoRepository<ProductModel> {
+  constructor() {
+    super('products')
+  }
 
-  findById: async (id) => {
-    return await ProductModel.findById(id).lean()
-  },
+  async getById(id: string) {
+    return this.findOne({ id })
+  }
 
-  create: (item) => {
-    return new ProductModel(item)
-  },
-
-  createMany: (items) => {
-    return items.map((item) => {
-      return new ProductModel(item)
-    })
-  },
-
-  save: (item) => {
-    new ProductModel(item).save()
-  },
-
-  saveMany: (items) => {
-    ProductModel.bulkSave(items.map((item) => new ProductModel(item)))
-  },
-
-  delete: (id) => {
-    ProductModel.deleteOne({ _id: id })
-  },
-
-  deleteMany: (ids) => {
-    ProductModel.deleteMany({ _id: { $in: ids } })
-  },
+  async getAll() {
+    return this.findAll()
+  }
 }

@@ -1,17 +1,5 @@
-import { model, Schema } from 'mongoose'
+import { BaseModel } from '@/data/models/BaseModel'
 
-import { WithId } from '@/common/schemas/withid.interface'
-import { BaseSchemaOptions } from '@/data/models/BaseSchemaOptions'
-
-export interface IBrandModel {
+export interface BrandModel extends BaseModel {
   name: string
 }
-
-export const BrandSchema = new Schema<WithId<IBrandModel>>(
-  {
-    name: { type: String, required: true },
-  },
-  BaseSchemaOptions
-)
-
-export const BrandModel = model<WithId<IBrandModel>>('Brand', BrandSchema)
