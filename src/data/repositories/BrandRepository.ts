@@ -22,4 +22,12 @@ export class BrandRepository extends BaseMongoRepository<BrandModel> {
   async update(model: BrandModel) {
     return this.updateOne({ id: model.id }, model)
   }
+
+  async updateBrandNames(fromName: string, toName: string) {
+    return this.updateMany({ name: fromName }, { name: toName })
+  }
+
+  async upsertMany(models: BrandModel[]) {
+    return this.updateMany({}, models)
+  }
 }

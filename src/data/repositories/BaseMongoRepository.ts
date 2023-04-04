@@ -6,6 +6,7 @@ import {
   FindOptions,
   InsertManyResult,
   InsertOneOptions,
+  MatchKeysAndValues,
   ObjectId,
   OptionalUnlessRequiredId,
   UpdateOptions,
@@ -21,14 +22,20 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
 
   private convertToModel = (document: WithId<any>): T => {
     const { _id, ...rest } = document
-    const id = _id ? _id.toHexString() : undefined
-    return { ...rest, id }
+    const model = _id ? { ...rest, id: _id.toHexString() } : { ...rest }
+    return model
   }
 
   private convertToDocument = (model: T): OptionalUnlessRequiredId<T> => {
     const { id, ...rest } = model
-    const _id = new ObjectId(id)
-    return { ...rest, _id } as OptionalUnlessRequiredId<T>
+    const document = id ? { ...rest, _id: new ObjectId(id) } : { ...rest }
+    return document as OptionalUnlessRequiredId<T>
+  }
+
+  private convertToPartialDocument = (model: Partial<T>): MatchKeysAndValues<T> => {
+    const { id, ...rest } = model
+    const document = id ? { ...rest, _id: new ObjectId(id) } : { ...rest }
+    return document as MatchKeysAndValues<T>
   }
 
   private updateCreatedAt = (model: T): T => {
@@ -39,7 +46,7 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
     }
   }
 
-  private updateUpdatedAt = (model: T): T => {
+  private updateUpdatedAt = (model: Partial<T>): Partial<T> => {
     return {
       ...model,
       updatedAt: new Date(),
@@ -74,7 +81,8 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
     if (!this.collection) return null
     const modifiedOptions = { ...options, upsert: true }
     const modifiedModel = this.updateCreatedAt(model)
-    const result = await this.collection.insertOne(this.convertToDocument(modifiedModel), modifiedOptions)
+    const modifiedModelDocument = this.convertToDocument(modifiedModel)
+    const result = await this.collection.insertOne(modifiedModelDocument, modifiedOptions)
     return result ? this.convertToModel(result) : null
   }
 
@@ -84,22 +92,25 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
     return result
   }
 
-  protected async updateOne(filter: Filter<T>, model: T, options?: UpdateOptions): Promise<UpdateResult | null> {
+  protected async updateOne(filter: Filter<T>, model: Partial<T>, options?: UpdateOptions): Promise<UpdateResult | null> {
     if (!this.collection) return null
     const modifiedOptions = { ...options, upsert: true }
     const modifiedModel = this.updateUpdatedAt(model)
-    const result = await this.collection.updateOne(this.modifyFilter(filter), { $set: { ...modifiedModel } }, modifiedOptions)
+    const modifiedModelDocument = this.convertToPartialDocument(modifiedModel)
+    const result = await this.collection.updateOne(this.modifyFilter(filter), { $set: { ...modifiedModelDocument } }, modifiedOptions)
     return result
   }
 
-  protected async updateMany(filter: Filter<T>, model: T, options?: UpdateOptions): Promise<UpdateResult | null> {
+  protected async updateMany(filter: Filter<T>, model: Partial<T>, options?: UpdateOptions): Promise<UpdateResult | null> {
     if (!this.collection) return null
-    const modifiedUpdate = this.updateUpdatedAt(model)
-    const result = await this.collection.updateMany(filter, modifiedUpdate, options)
+    const modifiedOptions = { ...options, upsert: true }
+    const modifiedModel = this.updateUpdatedAt(model)
+    const modifiedModelDocument = this.convertToPartialDocument(modifiedModel)
+    const result = await this.collection.updateMany(this.modifyFilter(filter), { $set: { ...modifiedModelDocument } }, modifiedOptions)
     return result
   }
 
-  protected async delete(filter: Filter<T>, options?: DeleteOptions): Promise<number> {
+  protected async deleteOne(filter: Filter<T>, options?: DeleteOptions): Promise<number> {
     if (!this.collection) return 0
     const result = await this.collection.deleteOne(this.modifyFilter(filter), options)
     return result.deletedCount > 0 ? result.deletedCount : 0

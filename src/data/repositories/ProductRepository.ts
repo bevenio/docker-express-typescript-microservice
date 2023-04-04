@@ -10,4 +10,8 @@ export class ProductRepository extends BaseMongoRepository<ProductModel> {
   async getAll() {
     return this.findAll()
   }
+
+  async create(model: ProductModel) {
+    return this.insertOne(model)
+  }
 }

@@ -1,10 +1,11 @@
-import { BaseEntity } from '@/domain/entities/BaseEntity'
+import { BaseEntity, DomainEntity } from '@/domain/entities/BaseEntity'
 
+@DomainEntity()
 export class Brand extends BaseEntity {
-  name: string
+  public name: string
 
-  constructor(data: Partial<Brand> = {}) {
+  constructor(name: string) {
     super()
-    Object.assign(this, data)
+    this.name = name
   }
 }

@@ -1,6 +1,7 @@
-import { BaseEntity } from '@/domain/entities/BaseEntity'
+import { BaseEntity, DomainEntity } from '@/domain/entities/BaseEntity'
 import { Brand } from '@/domain/entities/Brand'
 
+@DomainEntity()
 export class Product extends BaseEntity {
   name: string
   price?: number
@@ -8,8 +9,7 @@ export class Product extends BaseEntity {
   amountSold?: number
   brand?: Brand
 
-  constructor(data: Partial<Product> = {}) {
+  constructor() {
     super()
-    Object.assign(this, data)
   }
 }
