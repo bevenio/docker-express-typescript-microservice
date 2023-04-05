@@ -6,6 +6,7 @@ import {
   FindOptions,
   InsertManyResult,
   InsertOneOptions,
+  InsertOneResult,
   MatchKeysAndValues,
   ObjectId,
   OptionalUnlessRequiredId,
@@ -17,26 +18,72 @@ import {
 import { DatabaseConnector } from '@/common/database/connector'
 import { BaseModel } from '@/data/models/BaseModel'
 
+export interface UpsertOneResult {
+  insertedCount: number
+  insertedId: string | undefined
+  updatedCount: number
+  updatedId: string | undefined
+}
+
+export interface UpsertManyResult {
+  insertedCount: number
+  insertedIds: string[]
+  updatedCount: number
+  updatedIds: string[]
+}
+
 export abstract class BaseMongoRepository<T extends BaseModel> {
   private readonly collection: Collection<T> | null
 
+  /**
+   * Conversion string id <=> object id.
+   * This conversion is added to ensure that we don't expose ObjectId
+   * as an database implementation detail to other layers of this application
+   */
+
+  private toStringId = (id: ObjectId): string => {
+    return id.toHexString()
+  }
+
+  private toObjectId = (id: string): ObjectId => {
+    return new ObjectId(id)
+  }
+
+  /**
+   * Conversion of model <=> document.
+   * This conversion is added to ensure that we don't expose ObjectId
+   * and other implementation details of the database to other layers of this application
+   */
+
   private convertToModel = (document: WithId<any>): T => {
     const { _id, ...rest } = document
-    const model = _id ? { ...rest, id: _id.toHexString() } : { ...rest }
+    const model = _id ? { ...rest, id: this.toStringId(_id) } : { ...rest }
     return model
   }
 
   private convertToDocument = (model: T): OptionalUnlessRequiredId<T> => {
     const { id, ...rest } = model
-    const document = id ? { ...rest, _id: new ObjectId(id) } : { ...rest }
+    const document = id ? { ...rest, _id: this.toObjectId(id) } : { ...rest }
     return document as OptionalUnlessRequiredId<T>
   }
 
   private convertToPartialDocument = (model: Partial<T>): MatchKeysAndValues<T> => {
     const { id, ...rest } = model
-    const document = id ? { ...rest, _id: new ObjectId(id) } : { ...rest }
+    const document = id ? { ...rest, _id: this.toObjectId(id) } : { ...rest }
     return document as MatchKeysAndValues<T>
   }
+
+  private modifyFilter = (filter: Filter<T>): Filter<any> => {
+    const { id, ...rest } = filter
+    const _id = typeof id === 'string' ? this.toObjectId(id) : undefined
+    return id ? { ...rest, _id } : { ...rest }
+  }
+
+  /**
+   * Helper functions to be used when creating or updating database entries.
+   * This helps tracking changes to the database without the need of adding
+   * such logic to every repository that extends this class
+   */
 
   private updateCreatedAt = (model: T): T => {
     return {
@@ -53,11 +100,10 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
     }
   }
 
-  private modifyFilter = (filter: Filter<T>): Filter<any> => {
-    const { id, ...rest } = filter
-    const _id = typeof id === 'string' ? new ObjectId(id) : undefined
-    return id ? { ...rest, _id } : { ...rest }
-  }
+  /**
+   * Default interaction functions to be used by the repositories that extend this class.
+   * Enabling finding, inserting, upserting, updating, deleting and countinc databse entries
+   */
 
   protected async findOne(filter: Filter<T>, options?: FindOptions<T>): Promise<T | null> {
     if (!this.collection) return null
@@ -77,13 +123,13 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
     return result ? result.map<T>(this.convertToModel) : []
   }
 
-  protected async insertOne(model: T, options?: InsertOneOptions): Promise<T | null> {
+  protected async insertOne(model: T, options?: InsertOneOptions): Promise<InsertOneResult<T> | null> {
     if (!this.collection) return null
     const modifiedOptions = { ...options, upsert: true }
     const modifiedModel = this.updateCreatedAt(model)
     const modifiedModelDocument = this.convertToDocument(modifiedModel)
     const result = await this.collection.insertOne(modifiedModelDocument, modifiedOptions)
-    return result ? this.convertToModel(result) : null
+    return result
   }
 
   protected async insertMany(models: T[], options?: BulkWriteOptions): Promise<InsertManyResult<T> | null> {
@@ -94,19 +140,17 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
 
   protected async updateOne(filter: Filter<T>, model: Partial<T>, options?: UpdateOptions): Promise<UpdateResult | null> {
     if (!this.collection) return null
-    const modifiedOptions = { ...options, upsert: true }
     const modifiedModel = this.updateUpdatedAt(model)
     const modifiedModelDocument = this.convertToPartialDocument(modifiedModel)
-    const result = await this.collection.updateOne(this.modifyFilter(filter), { $set: { ...modifiedModelDocument } }, modifiedOptions)
+    const result = await this.collection.updateOne(this.modifyFilter(filter), { $set: { ...modifiedModelDocument } }, options)
     return result
   }
 
   protected async updateMany(filter: Filter<T>, model: Partial<T>, options?: UpdateOptions): Promise<UpdateResult | null> {
     if (!this.collection) return null
-    const modifiedOptions = { ...options, upsert: true }
     const modifiedModel = this.updateUpdatedAt(model)
     const modifiedModelDocument = this.convertToPartialDocument(modifiedModel)
-    const result = await this.collection.updateMany(this.modifyFilter(filter), { $set: { ...modifiedModelDocument } }, modifiedOptions)
+    const result = await this.collection.updateMany(this.modifyFilter(filter), { $set: { ...modifiedModelDocument } }, options)
     return result
   }
 
@@ -122,10 +166,84 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
     return result.deletedCount
   }
 
+  protected async upsertOne(model: T): Promise<UpsertOneResult | null> {
+    if (!this.collection) return null
+
+    const upsertResult: UpsertOneResult = {
+      insertedCount: 0,
+      insertedId: undefined,
+      updatedCount: 0,
+      updatedId: undefined,
+    }
+
+    if (!model.id) {
+      const insertResult = await this.insertOne(model)
+      upsertResult.insertedCount = 1
+      upsertResult.insertedId = insertResult ? this.toStringId(insertResult.insertedId) : undefined
+    } else {
+      const updateFilter: Filter<BaseModel> = { id: model.id }
+      const updateResult = await this.updateOne(updateFilter, model)
+      upsertResult.updatedCount = updateResult?.modifiedCount || 0
+      upsertResult.updatedId = model.id
+    }
+    return upsertResult
+  }
+
+  protected async upsertMany(models: T[]): Promise<UpsertManyResult | null> {
+    if (!this.collection) return null
+
+    const upsertResult: UpsertManyResult = {
+      insertedCount: 0,
+      insertedIds: [],
+      updatedCount: 0,
+      updatedIds: [],
+    }
+
+    const modelsToInsert = models.filter((model: T) => !model.id)
+    const modelsToUpdate = models.filter((model: T) => !!model.id)
+
+    if (modelsToInsert.length > 0) {
+      const insertResult = await this.insertMany(modelsToInsert)
+      upsertResult.insertedCount = insertResult?.insertedCount || 0
+      for (let i = 0; i < upsertResult.insertedCount; i++) {
+        if (insertResult?.insertedIds[i]) {
+          upsertResult.insertedIds.push(this.toStringId(insertResult?.insertedIds[i]))
+        }
+      }
+    }
+
+    if (modelsToUpdate.length > 0) {
+      const bulkUpdateOperations = modelsToUpdate.map((model: T) => {
+        const updateFilter: Filter<BaseModel> = { id: model.id }
+        const modifiedModel = this.updateUpdatedAt(model)
+        const modifiedModelDocument = this.convertToPartialDocument(modifiedModel)
+        return {
+          updateOne: {
+            filter: this.modifyFilter(updateFilter),
+            update: { $set: modifiedModelDocument },
+          },
+        }
+      })
+      const bulkResult = await this.collection.bulkWrite(bulkUpdateOperations)
+      upsertResult.updatedCount = bulkResult.modifiedCount
+      modelsToUpdate.forEach((model) => {
+        if (model.id !== undefined) {
+          upsertResult.updatedIds.push(model.id)
+        }
+      })
+    }
+
+    return upsertResult
+  }
+
   async count(): Promise<number | 0> {
     if (!this.collection) return 0
     return this.collection.countDocuments()
   }
+
+  /**
+   * Exposed factory method to create an instance of repository
+   */
 
   static instance<T = BaseMongoRepository<any>>(this: { new (): T }) {
     return new this()

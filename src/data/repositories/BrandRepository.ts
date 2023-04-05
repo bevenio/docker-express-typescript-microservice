@@ -27,7 +27,11 @@ export class BrandRepository extends BaseMongoRepository<BrandModel> {
     return this.updateMany({ name: fromName }, { name: toName })
   }
 
-  async upsertMany(models: BrandModel[]) {
-    return this.updateMany({}, models)
+  async save(model: BrandModel) {
+    return this.upsertOne(model)
+  }
+
+  async saveMany(models: BrandModel[]) {
+    return this.upsertMany(models)
   }
 }
