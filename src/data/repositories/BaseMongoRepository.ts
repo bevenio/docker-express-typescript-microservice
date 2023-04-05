@@ -1,4 +1,5 @@
 import {
+  AnyBulkWriteOperation,
   BulkWriteOptions,
   Collection,
   DeleteOptions,
@@ -9,6 +10,7 @@ import {
   InsertOneResult,
   MatchKeysAndValues,
   ObjectId,
+  OptionalId,
   OptionalUnlessRequiredId,
   UpdateOptions,
   UpdateResult,
@@ -125,10 +127,9 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
 
   protected async insertOne(model: T, options?: InsertOneOptions): Promise<InsertOneResult<T> | null> {
     if (!this.collection) return null
-    const modifiedOptions = { ...options, upsert: true }
     const modifiedModel = this.updateCreatedAt(model)
     const modifiedModelDocument = this.convertToDocument(modifiedModel)
-    const result = await this.collection.insertOne(modifiedModelDocument, modifiedOptions)
+    const result = await this.collection.insertOne(modifiedModelDocument, options)
     return result
   }
 
@@ -168,25 +169,13 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
 
   protected async upsertOne(model: T): Promise<UpsertOneResult | null> {
     if (!this.collection) return null
-
-    const upsertResult: UpsertOneResult = {
-      insertedCount: 0,
-      insertedId: undefined,
-      updatedCount: 0,
-      updatedId: undefined,
+    const upsertResult = await this.upsertMany([model])
+    return {
+      insertedCount: upsertResult?.insertedCount || 0,
+      insertedId: upsertResult?.insertedIds[0] || undefined,
+      updatedCount: upsertResult?.updatedCount || 0,
+      updatedId: upsertResult?.updatedIds[0] || undefined,
     }
-
-    if (!model.id) {
-      const insertResult = await this.insertOne(model)
-      upsertResult.insertedCount = 1
-      upsertResult.insertedId = insertResult ? this.toStringId(insertResult.insertedId) : undefined
-    } else {
-      const updateFilter: Filter<BaseModel> = { id: model.id }
-      const updateResult = await this.updateOne(updateFilter, model)
-      upsertResult.updatedCount = updateResult?.modifiedCount || 0
-      upsertResult.updatedId = model.id
-    }
-    return upsertResult
   }
 
   protected async upsertMany(models: T[]): Promise<UpsertManyResult | null> {
@@ -199,40 +188,29 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
       updatedIds: [],
     }
 
-    const modelsToInsert = models.filter((model: T) => !model.id)
-    const modelsToUpdate = models.filter((model: T) => !!model.id)
-
-    if (modelsToInsert.length > 0) {
-      const insertResult = await this.insertMany(modelsToInsert)
-      upsertResult.insertedCount = insertResult?.insertedCount || 0
-      for (let i = 0; i < upsertResult.insertedCount; i++) {
-        if (insertResult?.insertedIds[i]) {
-          upsertResult.insertedIds.push(this.toStringId(insertResult?.insertedIds[i]))
+    const bulkWriteOperations: AnyBulkWriteOperation<T>[] = models.map((model) => {
+      if (!model.id) {
+        return {
+          insertOne: {
+            document: this.convertToDocument(this.updateCreatedAt(model)) as OptionalId<T>,
+          },
         }
-      }
-    }
-
-    if (modelsToUpdate.length > 0) {
-      const bulkUpdateOperations = modelsToUpdate.map((model: T) => {
+      } else {
         const updateFilter: Filter<BaseModel> = { id: model.id }
-        const modifiedModel = this.updateUpdatedAt(model)
-        const modifiedModelDocument = this.convertToPartialDocument(modifiedModel)
         return {
           updateOne: {
             filter: this.modifyFilter(updateFilter),
-            update: { $set: modifiedModelDocument },
+            update: { $set: this.convertToPartialDocument(this.updateUpdatedAt(model)) },
           },
         }
-      })
-      const bulkResult = await this.collection.bulkWrite(bulkUpdateOperations)
-      upsertResult.updatedCount = bulkResult.modifiedCount
-      modelsToUpdate.forEach((model) => {
-        if (model.id !== undefined) {
-          upsertResult.updatedIds.push(model.id)
-        }
-      })
-    }
+      }
+    })
 
+    const bulkResult = await this.collection.bulkWrite(bulkWriteOperations)
+    upsertResult.updatedCount = bulkResult.modifiedCount
+    upsertResult.insertedCount = bulkResult.insertedCount
+    upsertResult.updatedIds = models.map((model) => model.id).filter((id): id is string => typeof id === 'string')
+    upsertResult.insertedIds = Object.values(bulkResult.insertedIds).map(this.toStringId)
     return upsertResult
   }
 
