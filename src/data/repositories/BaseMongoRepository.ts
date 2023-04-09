@@ -9,7 +9,6 @@ import {
   InsertOneOptions,
   InsertOneResult,
   MatchKeysAndValues,
-  ObjectId,
   OptionalId,
   OptionalUnlessRequiredId,
   UpdateOptions,
@@ -18,6 +17,7 @@ import {
 } from 'mongodb'
 
 import { DatabaseConnector } from '@/common/database/connector'
+import { DatabaseSettings } from '@/common/database/settings'
 import { BaseModel } from '@/data/models/BaseModel'
 
 export interface UpsertOneResult {
@@ -43,12 +43,12 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
    * as an database implementation detail to other layers of this application
    */
 
-  private toStringId = (id: ObjectId): string => {
-    return id.toHexString()
+  private toStringId = (id: string): string => {
+    return id
   }
 
-  private toObjectId = (id: string): ObjectId => {
-    return new ObjectId(id)
+  private toMongoId = (id: string): string => {
+    return id
   }
 
   /**
@@ -65,19 +65,19 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
 
   private convertToDocument = (model: T): OptionalUnlessRequiredId<T> => {
     const { id, ...rest } = model
-    const document = id ? { ...rest, _id: this.toObjectId(id) } : { ...rest }
+    const document = id ? { ...rest, _id: this.toMongoId(id) } : { ...rest, _id: DatabaseSettings.mongo.generatePrimaryKey() }
     return document as OptionalUnlessRequiredId<T>
   }
 
   private convertToPartialDocument = (model: Partial<T>): MatchKeysAndValues<T> => {
     const { id, ...rest } = model
-    const document = id ? { ...rest, _id: this.toObjectId(id) } : { ...rest }
+    const document = id ? { ...rest, _id: this.toMongoId(id) } : { ...rest }
     return document as MatchKeysAndValues<T>
   }
 
   private modifyFilter = (filter: Filter<T>): Filter<any> => {
     const { id, ...rest } = filter
-    const _id = typeof id === 'string' ? this.toObjectId(id) : undefined
+    const _id = typeof id === 'string' ? this.toMongoId(id) : undefined
     return id ? { ...rest, _id } : { ...rest }
   }
 

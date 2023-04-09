@@ -1,7 +1,9 @@
 import { Document } from 'mongodb'
 
 export interface BaseModel extends Document {
-  readonly id?: string
+  readonly id?: MongoId
   readonly createdAt?: Date
   readonly updatedAt?: Date
 }
+
+export type MongoId<T = string> = T

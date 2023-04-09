@@ -1,7 +1,7 @@
 import { ProductModel } from '@/data/models/ProductModel'
 import { BaseMongoRepository, MongoRepository } from '@/data/repositories/BaseMongoRepository'
 
-@MongoRepository('brands')
+@MongoRepository('products')
 export class ProductRepository extends BaseMongoRepository<ProductModel> {
   async getById(id: string) {
     return this.findOne({ id })
