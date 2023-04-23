@@ -24,3 +24,7 @@ To be added:
 
 - MongoDB schema validation by using TS interfaces
 - OpenAPI generation from code
+
+To be fixed:
+
+- Make data repository functions "getByValue" and "getByValues" accept keys of entity only 

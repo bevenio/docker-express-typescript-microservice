@@ -1,11 +1,11 @@
-import { BaseEntity, DomainEntity } from '@/domain/entities/BaseEntity'
+import { IBaseEntity } from '@/domain/entities/BaseEntity.interface'
 
-@DomainEntity()
-export class Brand extends BaseEntity {
+export class Brand implements IBaseEntity {
+  readonly id: string
   public name: string
 
-  constructor(name: string) {
-    super()
+  constructor(id: string, name: string) {
+    this.id = id
     this.name = name
   }
 }

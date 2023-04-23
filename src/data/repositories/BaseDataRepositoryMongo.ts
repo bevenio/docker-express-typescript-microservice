@@ -18,7 +18,9 @@ import {
 
 import { DatabaseConnector } from '@/common/database/connector'
 import { DatabaseSettings } from '@/common/database/settings'
-import { BaseModel } from '@/data/models/BaseModel'
+import { IBaseEntity } from '@/data/entities/BaseEntity.interface'
+
+import { IBaseDataRepository } from './BaseDataRepository.interface'
 
 export interface UpsertOneResult {
   insertedCount: number
@@ -34,22 +36,8 @@ export interface UpsertManyResult {
   updatedIds: string[]
 }
 
-export abstract class BaseMongoRepository<T extends BaseModel> {
+export abstract class BaseMongoRepository<T extends IBaseEntity> implements IBaseDataRepository<T> {
   private readonly collection: Collection<T> | null
-
-  /**
-   * Conversion string id <=> object id.
-   * This conversion is added to ensure that we don't expose ObjectId
-   * as an database implementation detail to other layers of this application
-   */
-
-  private toStringId = (id: string): string => {
-    return id
-  }
-
-  private toMongoId = (id: string): string => {
-    return id
-  }
 
   /**
    * Conversion of model <=> document.
@@ -59,25 +47,25 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
 
   private convertToModel = (document: WithId<any>): T => {
     const { _id, ...rest } = document
-    const model = _id ? { ...rest, id: this.toStringId(_id) } : { ...rest }
+    const model = _id ? { ...rest, id: _id } : { ...rest }
     return model
   }
 
   private convertToDocument = (model: T): OptionalUnlessRequiredId<T> => {
     const { id, ...rest } = model
-    const document = id ? { ...rest, _id: this.toMongoId(id) } : { ...rest, _id: DatabaseSettings.mongo.generatePrimaryKey() }
+    const document = id ? { ...rest, _id: id } : { ...rest, _id: DatabaseSettings.mongo.generatePrimaryKey() }
     return document as OptionalUnlessRequiredId<T>
   }
 
   private convertToPartialDocument = (model: Partial<T>): MatchKeysAndValues<T> => {
     const { id, ...rest } = model
-    const document = id ? { ...rest, _id: this.toMongoId(id) } : { ...rest }
+    const document = id ? { ...rest, _id: id } : { ...rest }
     return document as MatchKeysAndValues<T>
   }
 
   private modifyFilter = (filter: Filter<T>): Filter<any> => {
     const { id, ...rest } = filter
-    const _id = typeof id === 'string' ? this.toMongoId(id) : undefined
+    const _id = typeof id !== undefined ? id : undefined
     return id ? { ...rest, _id } : { ...rest }
   }
 
@@ -196,7 +184,7 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
           },
         }
       } else {
-        const updateFilter: Filter<BaseModel> = { id: model.id }
+        const updateFilter: Filter<IBaseEntity> = { id: model.id }
         return {
           updateOne: {
             filter: this.modifyFilter(updateFilter),
@@ -210,11 +198,51 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
     upsertResult.updatedCount = bulkResult.modifiedCount
     upsertResult.insertedCount = bulkResult.insertedCount
     upsertResult.updatedIds = models.map((model) => model.id).filter((id): id is string => typeof id === 'string')
-    upsertResult.insertedIds = Object.values(bulkResult.insertedIds).map(this.toStringId)
+    upsertResult.insertedIds = Object.values(bulkResult.insertedIds).map(String)
     return upsertResult
   }
 
-  async count(): Promise<number | 0> {
+  /**
+   * Public methods to implement the BaseDataRepository contract
+   */
+
+  public async getById(id: string): Promise<T | null> {
+    return this.findOne({ id } as Filter<T>)
+  }
+
+  public async getByIds(ids: string[]): Promise<T[]> {
+    return this.findMany({ id: { $in: ids } } as Filter<T>)
+  }
+
+  public async getByValue<K extends keyof T>(key: K, value: T[K]): Promise<T | null> {
+    return this.findOne({ [key]: value } as Filter<T>)
+  }
+
+  public async getByValues<K extends keyof T>(key: K, values: T[K][]): Promise<T[]> {
+    return this.findMany({ [String(key)]: { $in: values } } as Filter<T>)
+  }
+
+  public async getAll(): Promise<T[]> {
+    return this.findAll()
+  }
+
+  public async remove(model: T): Promise<void> {
+    this.deleteOne(model)
+  }
+
+  public async removeMany(models: T[]): Promise<void> {
+    this.deleteMany({ id: { $in: models.map((model) => model.id) } } as Filter<T>)
+  }
+
+  public async save(model: T): Promise<void> {
+    this.upsertOne(model)
+  }
+
+  public async saveMany(models: T[]): Promise<void> {
+    this.upsertMany(models)
+  }
+
+  public async count(): Promise<number | 0> {
     if (!this.collection) return 0
     return this.collection.countDocuments()
   }
@@ -223,12 +251,12 @@ export abstract class BaseMongoRepository<T extends BaseModel> {
    * Exposed factory method to create an instance of repository
    */
 
-  static instance<T = BaseMongoRepository<any>>(this: { new (): T }) {
+  static instance<I = BaseMongoRepository<IBaseEntity>>(this: { new (): I }) {
     return new this()
   }
 }
 
-export const MongoRepository = (collectionName: string) => {
+export const MongoDataRepository = (collectionName: string) => {
   return <T extends { new (...args: any[]): any }>(target: T) => {
     return class extends target {
       collection = DatabaseConnector.getConnection('mongo')?.collection<T>(collectionName) || null
